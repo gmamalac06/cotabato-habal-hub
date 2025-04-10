@@ -1,18 +1,19 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { GoogleMap as GoogleMapComponent, useJsApiLoader, Marker } from "@react-google-maps/api";
+import { GoogleMap as GoogleMapComponent, Marker } from "@react-google-maps/api";
 import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-
-const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ["places"];
 
 // Default map center (Cotabato City)
 const defaultCenter = {
   lat: 7.2170,
   lng: 124.2482
 };
+
+// Define libraries type properly to fix TypeScript error
+type Library = "places" | "drawing" | "geometry" | "visualization";
 
 interface GoogleMapProps {
   center?: { lat: number; lng: number };
@@ -40,15 +41,15 @@ export default function GoogleMap({
 }: GoogleMapProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { apiKey, setApiKey, isKeyConfigured } = useGoogleMapApi();
+  const { apiKey, setApiKey, isKeyConfigured, isLoaded, loadError } = useGoogleMapApi();
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(!isKeyConfigured);
   const [newApiKey, setNewApiKey] = useState("");
   
-  // Load the Google Maps JavaScript API
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: apiKey,
-    libraries,
-  });
+  // Store the map instance reference when the map is loaded
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+    setMapLoaded(true);
+  }, []);
 
   // Show API key dialog when not configured
   useEffect(() => {
@@ -64,12 +65,6 @@ export default function GoogleMap({
       setShowApiKeyDialog(false);
     }
   };
-
-  // Store the map instance reference when the map is loaded
-  const onMapLoad = useCallback((map: google.maps.Map) => {
-    mapRef.current = map;
-    setMapLoaded(true);
-  }, []);
 
   // If there's an error loading the map, display an error message
   if (loadError) {

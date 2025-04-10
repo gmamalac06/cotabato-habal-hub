@@ -4,6 +4,7 @@ import GoogleMap from "./GoogleMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Navigation } from "lucide-react";
+import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
 
 interface LocationPickerProps {
   initialLocation?: { lat: number; lng: number };
@@ -21,9 +22,14 @@ export default function LocationPicker({
   );
   const [address, setAddress] = useState<string>("");
   const [searchInput, setSearchInput] = useState<string>("");
+  const { isLoaded } = useGoogleMapApi();
   
   // Initialize geocoder
   const geocodeLocation = async (lat: number, lng: number) => {
+    if (!window.google?.maps) {
+      return "";
+    }
+    
     try {
       const geocoder = new google.maps.Geocoder();
       const response = await geocoder.geocode({ location: { lat, lng } });
@@ -52,7 +58,7 @@ export default function LocationPicker({
 
   // Handle search input
   const handleSearch = async () => {
-    if (!searchInput.trim()) return;
+    if (!searchInput.trim() || !window.google?.maps) return;
     
     try {
       const geocoder = new google.maps.Geocoder();
@@ -81,11 +87,11 @@ export default function LocationPicker({
 
   // Populate address when initialLocation changes
   useEffect(() => {
-    if (initialLocation) {
+    if (initialLocation && isLoaded) {
       setSelectedLocation(initialLocation);
       geocodeLocation(initialLocation.lat, initialLocation.lng);
     }
-  }, [initialLocation]);
+  }, [initialLocation, isLoaded]);
 
   return (
     <div className="space-y-4">

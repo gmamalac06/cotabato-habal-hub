@@ -4,6 +4,7 @@ import GoogleMap from "./GoogleMap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Ride } from "@/types";
+import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
 
 interface RiderLocationMapProps {
   ride: Ride;
@@ -14,6 +15,7 @@ export default function RiderLocationMap({ ride, className = "" }: RiderLocation
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+  const { isLoaded } = useGoogleMapApi();
 
   // Start tracking driver location
   const startTracking = () => {
@@ -114,6 +116,21 @@ export default function RiderLocationMap({ ride, className = "" }: RiderLocation
 
     return markers;
   };
+
+  if (!isLoaded) {
+    return (
+      <Card className={className}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Ride Locations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-4 h-[300px] bg-secondary/50">
+            Loading map...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={className}>

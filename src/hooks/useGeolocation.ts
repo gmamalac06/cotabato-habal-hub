@@ -54,7 +54,10 @@ export function useGeolocation() {
       });
     };
 
-    // Get current position
+    // First get a single position
+    navigator.geolocation.getCurrentPosition(geoSuccess, geoError, geoOptions);
+
+    // Then watch for changes
     const watchId = navigator.geolocation.watchPosition(
       geoSuccess,
       geoError,
