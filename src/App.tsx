@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { GoogleMapApiProvider } from "@/contexts/GoogleMapApiProvider";
 import { AuthGuard, GuestGuard } from "@/components/AuthGuard";
 
 // Page imports
@@ -24,91 +25,93 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Landing />} />
-            
-            {/* Auth routes */}
-            <Route 
-              path="/login" 
-              element={
-                <GuestGuard>
-                  <Login />
-                </GuestGuard>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <GuestGuard>
-                  <Register />
-                </GuestGuard>
-              } 
-            />
+      <GoogleMapApiProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Landing />} />
+              
+              {/* Auth routes */}
+              <Route 
+                path="/login" 
+                element={
+                  <GuestGuard>
+                    <Login />
+                  </GuestGuard>
+                } 
+              />
+              <Route 
+                path="/register" 
+                element={
+                  <GuestGuard>
+                    <Register />
+                  </GuestGuard>
+                } 
+              />
 
-            {/* Rider routes */}
-            <Route 
-              path="/rider" 
-              element={
-                <AuthGuard allowedRoles={['rider']}>
-                  <RiderDashboard />
-                </AuthGuard>
-              } 
-            />
-            <Route 
-              path="/rider/bookings" 
-              element={
-                <AuthGuard allowedRoles={['rider']}>
-                  <RiderBookings />
-                </AuthGuard>
-              } 
-            />
+              {/* Rider routes */}
+              <Route 
+                path="/rider" 
+                element={
+                  <AuthGuard allowedRoles={['rider']}>
+                    <RiderDashboard />
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/rider/bookings" 
+                element={
+                  <AuthGuard allowedRoles={['rider']}>
+                    <RiderBookings />
+                  </AuthGuard>
+                } 
+              />
 
-            {/* Driver routes */}
-            <Route 
-              path="/driver" 
-              element={
-                <AuthGuard allowedRoles={['driver']}>
-                  <DriverDashboard />
-                </AuthGuard>
-              } 
-            />
-            <Route 
-              path="/driver/rides" 
-              element={
-                <AuthGuard allowedRoles={['driver']}>
-                  <DriverRides />
-                </AuthGuard>
-              } 
-            />
+              {/* Driver routes */}
+              <Route 
+                path="/driver" 
+                element={
+                  <AuthGuard allowedRoles={['driver']}>
+                    <DriverDashboard />
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/driver/rides" 
+                element={
+                  <AuthGuard allowedRoles={['driver']}>
+                    <DriverRides />
+                  </AuthGuard>
+                } 
+              />
 
-            {/* Admin routes */}
-            <Route 
-              path="/admin" 
-              element={
-                <AuthGuard allowedRoles={['admin']}>
-                  <AdminDashboard />
-                </AuthGuard>
-              } 
-            />
-            <Route 
-              path="/admin/users" 
-              element={
-                <AuthGuard allowedRoles={['admin']}>
-                  <AdminUsers />
-                </AuthGuard>
-              } 
-            />
+              {/* Admin routes */}
+              <Route 
+                path="/admin" 
+                element={
+                  <AuthGuard allowedRoles={['admin']}>
+                    <AdminDashboard />
+                  </AuthGuard>
+                } 
+              />
+              <Route 
+                path="/admin/users" 
+                element={
+                  <AuthGuard allowedRoles={['admin']}>
+                    <AdminUsers />
+                  </AuthGuard>
+                } 
+              />
 
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              {/* 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </GoogleMapApiProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

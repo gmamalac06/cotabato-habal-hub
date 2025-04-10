@@ -20,16 +20,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Calendar } from "lucide-react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Calendar, MapPin, Navigation } from "lucide-react";
 import { dashboardStats } from "@/lib/mock-data";
 import { useToast } from "@/components/ui/use-toast";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import LocationPicker from "@/components/maps/LocationPicker";
 
 export default function RiderDashboard() {
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState<"manual" | "map">("manual");
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
+  const [pickupLocation, setPickupLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  const [dropoffLocation, setDropoffLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("gcash");
   const { toast } = useToast();
+  const { position: currentPosition, loading: loadingPosition, error: positionError } = useGeolocation();
 
   const handleBookRide = () => {
     // In a real app, this would send data to the backend
@@ -38,6 +50,22 @@ export default function RiderDashboard() {
       description: "Your ride has been scheduled successfully.",
     });
     setIsBookingDialogOpen(false);
+    
+    // Reset form values
+    setPickup("");
+    setDropoff("");
+    setPickupLocation(null);
+    setDropoffLocation(null);
+  };
+
+  const handlePickupSelected = (location: { lat: number; lng: number; address: string }) => {
+    setPickupLocation(location);
+    setPickup(location.address);
+  };
+
+  const handleDropoffSelected = (location: { lat: number; lng: number; address: string }) => {
+    setDropoffLocation(location);
+    setDropoff(location.address);
   };
 
   return (
@@ -53,7 +81,7 @@ export default function RiderDashboard() {
           <DialogTrigger asChild>
             <Button className="mt-4 md:mt-0">Book a Ride</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Book a Habal-Habal Ride</DialogTitle>
               <DialogDescription>
@@ -61,50 +89,114 @@ export default function RiderDashboard() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="pickup" className="text-sm font-medium">Pickup Location</label>
-                <Input 
-                  id="pickup" 
-                  placeholder="Enter pickup address" 
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                />
-              </div>
+            <Tabs defaultValue="manual" onValueChange={(value) => setCurrentTab(value as "manual" | "map")}>
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="manual">Enter Address</TabsTrigger>
+                <TabsTrigger value="map">Choose on Map</TabsTrigger>
+              </TabsList>
               
-              <div className="space-y-2">
-                <label htmlFor="dropoff" className="text-sm font-medium">Dropoff Location</label>
-                <Input 
-                  id="dropoff" 
-                  placeholder="Enter destination address" 
-                  value={dropoff}
-                  onChange={(e) => setDropoff(e.target.value)}
-                />
-              </div>
+              <TabsContent value="manual" className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label htmlFor="pickup" className="text-sm font-medium">Pickup Location</label>
+                  <Input 
+                    id="pickup" 
+                    placeholder="Enter pickup address" 
+                    value={pickup}
+                    onChange={(e) => setPickup(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="dropoff" className="text-sm font-medium">Dropoff Location</label>
+                  <Input 
+                    id="dropoff" 
+                    placeholder="Enter destination address" 
+                    value={dropoff}
+                    onChange={(e) => setDropoff(e.target.value)}
+                  />
+                </div>
+              </TabsContent>
               
-              <div className="space-y-2">
-                <label htmlFor="payment" className="text-sm font-medium">Payment Method</label>
-                <Select 
-                  value={paymentMethod} 
-                  onValueChange={setPaymentMethod}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gcash">GCash</SelectItem>
-                    <SelectItem value="paymaya">PayMaya</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <TabsContent value="map" className="py-2">
+                <div className="space-y-6">
+                  <Tabs defaultValue="pickup">
+                    <TabsList className="grid grid-cols-2 mb-4">
+                      <TabsTrigger value="pickup">Set Pickup</TabsTrigger>
+                      <TabsTrigger value="dropoff">Set Dropoff</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="pickup">
+                      <LocationPicker
+                        type="pickup"
+                        initialLocation={currentPosition || undefined}
+                        onSelectLocation={handlePickupSelected}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="dropoff">
+                      <LocationPicker
+                        type="dropoff"
+                        onSelectLocation={handleDropoffSelected}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                  
+                  {/* Display selected locations */}
+                  {(pickupLocation || dropoffLocation) && (
+                    <div className="space-y-3 border rounded-md p-3 bg-secondary/50">
+                      <h3 className="font-medium">Selected Locations</h3>
+                      
+                      {pickupLocation && (
+                        <div className="flex items-start space-x-3">
+                          <MapPin className="h-4 w-4 text-green-500 mt-1" />
+                          <div>
+                            <p className="text-sm font-medium">Pickup</p>
+                            <p className="text-xs text-muted-foreground break-words">{pickupLocation.address}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {dropoffLocation && (
+                        <div className="flex items-start space-x-3">
+                          <Navigation className="h-4 w-4 text-red-500 mt-1" />
+                          <div>
+                            <p className="text-sm font-medium">Dropoff</p>
+                            <p className="text-xs text-muted-foreground break-words">{dropoffLocation.address}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="space-y-2 py-2">
+              <label htmlFor="payment" className="text-sm font-medium">Payment Method</label>
+              <Select 
+                value={paymentMethod} 
+                onValueChange={setPaymentMethod}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gcash">GCash</SelectItem>
+                  <SelectItem value="paymaya">PayMaya</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
-            <DialogFooter>
+            <DialogFooter className="mt-4">
               <Button variant="outline" onClick={() => setIsBookingDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleBookRide}>
+              <Button 
+                onClick={handleBookRide}
+                disabled={(currentTab === "manual" && (!pickup || !dropoff)) || 
+                         (currentTab === "map" && (!pickupLocation || !dropoffLocation))}
+              >
                 Book Now
               </Button>
             </DialogFooter>
