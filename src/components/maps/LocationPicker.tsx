@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import GoogleMap from "./GoogleMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, Search } from "lucide-react";
 import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LocationPickerProps {
   initialLocation?: { lat: number; lng: number };
@@ -23,6 +24,7 @@ export default function LocationPicker({
   const [address, setAddress] = useState<string>("");
   const [searchInput, setSearchInput] = useState<string>("");
   const { isLoaded } = useGoogleMapApi();
+  const isMobile = useIsMobile();
   
   // Initialize geocoder
   const geocodeLocation = async (lat: number, lng: number) => {
@@ -94,22 +96,28 @@ export default function LocationPicker({
   }, [initialLocation, isLoaded]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+    <div className="space-y-3">
+      <div className="relative">
         <Input
           placeholder="Search for a location"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+          className="pr-10"
         />
-        <Button variant="outline" onClick={handleSearch}>
-          Search
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute right-0 top-0 h-full" 
+          onClick={handleSearch}
+        >
+          <Search className="h-4 w-4" />
         </Button>
       </div>
       
       <div className="rounded-md overflow-hidden border">
         <GoogleMap
-          height="300px"
+          height={isMobile ? "200px" : "300px"}
           onClick={handleMapClick}
           markers={selectedLocation ? [
             {
@@ -121,18 +129,19 @@ export default function LocationPicker({
             }
           ] : []}
           center={selectedLocation || undefined}
+          zoom={isMobile ? 15 : 14}
         />
       </div>
       
       <div className="flex items-start space-x-3">
         {type === "pickup" ? (
-          <MapPin className="mt-1 h-5 w-5 text-green-500 flex-shrink-0" />
+          <MapPin className="mt-1 h-4 w-4 text-green-500 flex-shrink-0" />
         ) : (
-          <Navigation className="mt-1 h-5 w-5 text-red-500 flex-shrink-0" />
+          <Navigation className="mt-1 h-4 w-4 text-red-500 flex-shrink-0" />
         )}
         <div className="flex-1">
-          <p className="font-medium">{type === "pickup" ? "Pickup Location" : "Dropoff Location"}</p>
-          <p className="text-sm text-muted-foreground break-words">
+          <p className="text-sm font-medium">{type === "pickup" ? "Pickup Location" : "Dropoff Location"}</p>
+          <p className="text-xs text-muted-foreground break-words">
             {address || "Select a location on the map"}
           </p>
         </div>
@@ -142,8 +151,9 @@ export default function LocationPicker({
         className="w-full" 
         onClick={handleConfirm}
         disabled={!selectedLocation}
+        size={isMobile ? "sm" : "default"}
       >
-        Confirm {type === "pickup" ? "Pickup" : "Dropoff"} Location
+        Confirm {type === "pickup" ? "Pickup" : "Dropoff"}
       </Button>
     </div>
   );

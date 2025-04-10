@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Ride } from "@/types";
 import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MapPin, Navigation, Map } from "lucide-react";
 
 interface RiderLocationMapProps {
   ride: Ride;
@@ -16,6 +18,7 @@ export default function RiderLocationMap({ ride, className = "" }: RiderLocation
   const [watchId, setWatchId] = useState<number | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const { isLoaded } = useGoogleMapApi();
+  const isMobile = useIsMobile();
 
   // Start tracking driver location
   const startTracking = () => {
@@ -134,43 +137,45 @@ export default function RiderLocationMap({ ride, className = "" }: RiderLocation
 
   return (
     <Card className={className}>
-      <CardHeader className="pb-2">
+      <CardHeader className={`pb-2 ${isMobile ? "px-3 pt-3" : ""}`}>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Ride Locations</CardTitle>
+          <CardTitle className={isMobile ? "text-base" : "text-lg"}>
+            <Map className="h-4 w-4 inline mr-1" /> Ride Locations
+          </CardTitle>
           <div>
             {isTracking ? (
-              <Button variant="outline" size="sm" onClick={stopTracking}>
-                Stop Tracking
+              <Button variant="outline" size="sm" onClick={stopTracking} className="h-8">
+                Stop
               </Button>
             ) : (
-              <Button size="sm" onClick={startTracking}>
-                Share My Location
+              <Button size="sm" onClick={startTracking} className="h-8">
+                Share Location
               </Button>
             )}
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isMobile ? "px-3 pb-3" : ""}>
         <GoogleMap
-          height="300px"
+          height={isMobile ? "200px" : "300px"}
           center={getMapCenter()}
           markers={getMapMarkers()}
           zoom={13}
         />
         
-        <div className="mt-3 space-y-2 text-sm">
+        <div className="mt-2 space-y-1 text-sm">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-green-500"></div>
-            <p>Pickup: {ride.pickupLocation.address}</p>
+            <MapPin className="h-3 w-3 text-green-500" />
+            <p className="text-xs overflow-hidden text-ellipsis">{ride.pickupLocation.address}</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-red-500"></div>
-            <p>Dropoff: {ride.dropoffLocation.address}</p>
+            <Navigation className="h-3 w-3 text-red-500" />
+            <p className="text-xs overflow-hidden text-ellipsis">{ride.dropoffLocation.address}</p>
           </div>
           {driverLocation && (
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-              <p>Your current location</p>
+              <p className="text-xs">Your current location</p>
             </div>
           )}
         </div>

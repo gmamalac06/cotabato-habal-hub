@@ -115,7 +115,7 @@
   }
 
   .dashboard-card {
-    @apply bg-card rounded-lg border border-border shadow-sm p-6;
+    @apply bg-card rounded-lg border border-border shadow-sm p-4 sm:p-6;
   }
 
   .stats-card {
@@ -128,5 +128,20 @@
 
   .nav-link.active {
     @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .habal-container {
+      @apply px-3;
+    }
+    
+    .dashboard-card {
+      @apply p-3;
+    }
+    
+    .auth-card {
+      @apply p-5;
+    }
   }
 }

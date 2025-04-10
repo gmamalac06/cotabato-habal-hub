@@ -1,10 +1,8 @@
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { GoogleMap as GoogleMapComponent, Marker } from "@react-google-maps/api";
 import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Default map center (Cotabato City)
 const defaultCenter = {
@@ -38,9 +36,8 @@ export default function GoogleMap({
 }: GoogleMapProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { apiKey, setApiKey, isKeyConfigured, isLoaded, loadError } = useGoogleMapApi();
-  const [showApiKeyDialog, setShowApiKeyDialog] = useState(!isKeyConfigured);
-  const [newApiKey, setNewApiKey] = useState("");
+  const { isLoaded, loadError } = useGoogleMapApi();
+  const isMobile = useIsMobile();
   
   // Store the map instance reference when the map is loaded
   const onMapLoad = useCallback((map: google.maps.Map) => {
@@ -48,59 +45,11 @@ export default function GoogleMap({
     setMapLoaded(true);
   }, []);
 
-  // Handle API key submission
-  const handleSaveApiKey = () => {
-    if (newApiKey.trim()) {
-      setApiKey(newApiKey.trim());
-      setShowApiKeyDialog(false);
-    }
-  };
-
   // If there's an error loading the map, display an error message
   if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center p-4 bg-red-50 border border-red-200 rounded-md text-red-500 h-full">
         <p className="mb-2">Error loading Google Maps</p>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowApiKeyDialog(true)}
-        >
-          Configure API Key
-        </Button>
-      </div>
-    );
-  }
-
-  // If the API key is not configured, show a message
-  if (!isKeyConfigured) {
-    return (
-      <div className="flex flex-col items-center justify-center p-4 bg-secondary border border-border rounded-md h-full">
-        <p className="mb-2 text-center">Please configure your Google Maps API key</p>
-        <Button onClick={() => setShowApiKeyDialog(true)}>
-          Set API Key
-        </Button>
-        
-        <Dialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Configure Google Maps API Key</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <p className="text-sm text-muted-foreground">
-                To use the map features, please enter your Google Maps API key. 
-                You can get one from the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google Cloud Console</a>.
-              </p>
-              <Input 
-                placeholder="Enter your Google Maps API key" 
-                value={newApiKey} 
-                onChange={(e) => setNewApiKey(e.target.value)}
-              />
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSaveApiKey}>Save API Key</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     );
   }
@@ -122,6 +71,16 @@ export default function GoogleMap({
           streetViewControl: false,
           mapTypeControl: false,
           fullscreenControl: false,
+          zoomControl: !isMobile,
+          scrollwheel: true,
+          gestureHandling: 'greedy',
+          styles: [
+            {
+              featureType: "poi",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }]
+            }
+          ]
         }}
       >
         {/* Render markers */}
@@ -134,41 +93,6 @@ export default function GoogleMap({
           />
         ))}
       </GoogleMapComponent>
-      
-      {/* API Key configuration button */}
-      <div className="absolute top-2 right-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setShowApiKeyDialog(true)}
-          className="bg-white shadow-sm hover:bg-gray-100 text-gray-600 text-xs"
-        >
-          Configure API Key
-        </Button>
-      </div>
-      
-      {/* API Key Dialog */}
-      <Dialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Configure Google Maps API Key</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              To use the map features, please enter your Google Maps API key. 
-              You can get one from the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google Cloud Console</a>.
-            </p>
-            <Input 
-              placeholder="Enter your Google Maps API key" 
-              value={newApiKey} 
-              onChange={(e) => setNewApiKey(e.target.value)}
-            />
-          </div>
-          <DialogFooter>
-            <Button onClick={handleSaveApiKey}>Save API Key</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

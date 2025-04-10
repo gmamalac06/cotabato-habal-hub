@@ -2,10 +2,6 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 
 interface GoogleMapApiContextType {
-  apiKey: string;
-  setApiKey: (key: string) => void;
-  isKeyConfigured: boolean;
-  // Add a global loader status
   isLoaded: boolean;
   loadError: Error | undefined;
 }
@@ -16,35 +12,20 @@ interface GoogleMapApiProviderProps {
   children: ReactNode;
 }
 
+// Fixed API key
+const GOOGLE_MAPS_API_KEY = "AIzaSyDt1zdFIA-s113Rft92r0_zyvfvSI-JDeE";
+
 export function GoogleMapApiProvider({ children }: GoogleMapApiProviderProps) {
-  // Try to get API key from localStorage first
-  const [apiKey, setApiKey] = useState<string>(() => {
-    const storedKey = localStorage.getItem("google_maps_api_key");
-    return storedKey || "";
-  });
-  
   // Track loading status at the provider level
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<Error | undefined>(undefined);
 
-  // Save the API key to localStorage when it changes
+  // Initialize loader globally with the fixed API key
   useEffect(() => {
-    if (apiKey) {
-      localStorage.setItem("google_maps_api_key", apiKey);
-    }
-  }, [apiKey]);
-
-  // Initialize loader globally if API key is present
-  useEffect(() => {
-    if (!apiKey) {
-      setIsLoaded(false);
-      return;
-    }
-
-    // Only load the script if API key is present and not already loaded
+    // Only load the script if not already loaded
     if (!window.google?.maps) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
       script.defer = true;
       
@@ -54,7 +35,6 @@ export function GoogleMapApiProvider({ children }: GoogleMapApiProviderProps) {
       };
       
       script.onerror = (error) => {
-        // Properly handle the error type conversion
         const errorObj = error instanceof Error 
           ? error 
           : new Error(typeof error === 'string' ? error : 'Failed to load Google Maps API');
@@ -66,7 +46,6 @@ export function GoogleMapApiProvider({ children }: GoogleMapApiProviderProps) {
       document.head.appendChild(script);
       
       return () => {
-        // Only remove if it exists
         if (document.head.contains(script)) {
           document.head.removeChild(script);
         }
@@ -74,12 +53,9 @@ export function GoogleMapApiProvider({ children }: GoogleMapApiProviderProps) {
     } else {
       setIsLoaded(true);
     }
-  }, [apiKey]);
+  }, []);
 
   const value = {
-    apiKey,
-    setApiKey,
-    isKeyConfigured: Boolean(apiKey),
     isLoaded,
     loadError,
   };
