@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
-import { MotorcycleIcon } from "lucide-react";
+import { Bike } from "lucide-react";
 
 export default function Login() {
   const { login } = useAuth();
@@ -27,7 +27,7 @@ export default function Login() {
       <div className="auth-card animate-fade-in">
         <div className="text-center mb-6">
           <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
-            <MotorcycleIcon className="text-white h-6 w-6" />
+            <Bike className="text-white h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold">Welcome to Habal Hub</h1>
           <p className="text-muted-foreground">Sign in to your account</p>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dashboardStats, riders, drivers, rides } from "@/lib/mock-data";
 import { 
   Users, 
-  MotorcycleIcon, 
+  Bike, 
   Star, 
   Activity, 
   CreditCard, 
@@ -76,7 +75,7 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
-            <MotorcycleIcon className="h-4 w-4 text-muted-foreground" />
+            <Bike className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{dashboardStats.admin.totalRides}</div>
@@ -213,7 +212,7 @@ export default function AdminDashboard() {
             
             <div className="flex">
               <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <MotorcycleIcon className="h-5 w-5 text-primary" />
+                <Bike className="h-5 w-5 text-primary" />
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">

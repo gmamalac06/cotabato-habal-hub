@@ -1,10 +1,9 @@
-
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
 import { 
-  MotorcycleIcon, 
+  Bike, 
   Home, 
   Calendar, 
   Clock, 
@@ -93,7 +92,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="p-4">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <MotorcycleIcon className="h-4 w-4 text-white" />
+                <Bike className="h-4 w-4 text-white" />
               </div>
               <span className="font-heading text-lg font-bold">Habal Hub</span>
             </Link>
@@ -159,7 +158,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {isMobile && (
               <Link to="/" className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <MotorcycleIcon className="h-4 w-4 text-white" />
+                  <Bike className="h-4 w-4 text-white" />
                 </div>
                 <span className="font-heading text-lg font-bold">Habal Hub</span>
               </Link>

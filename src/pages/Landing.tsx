@@ -1,6 +1,5 @@
-
 import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle, MotorcycleIcon, MapPin, CreditCard, Star } from "lucide-react";
+import { ArrowRight, CheckCircle, Bike, MapPin, CreditCard, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 
@@ -11,7 +10,7 @@ const features = [
     description: "Book a habal-habal ride with just a few taps. Specify your pickup and drop-off locations quickly.",
   },
   {
-    icon: MotorcycleIcon,
+    icon: Bike,
     title: "Verified Drivers",
     description: "All our drivers are verified and trained to ensure your safety and comfort during rides.",
   },
@@ -219,7 +218,7 @@ export default function Landing() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                  <MotorcycleIcon className="h-4 w-4 text-primary" />
+                  <Bike className="h-4 w-4 text-primary" />
                 </div>
                 <span className="font-heading text-lg font-bold">Habal Hub</span>
               </div>

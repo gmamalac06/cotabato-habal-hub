@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { dashboardStats } from "@/lib/mock-data";
 import { useToast } from "@/components/ui/use-toast";
 import { 
-  MotorcycleIcon, 
+  Bike, 
   Users, 
   MapPin, 
   Navigation, 
@@ -75,7 +74,7 @@ export default function DriverDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
-            <MotorcycleIcon className="h-4 w-4 text-muted-foreground" />
+            <Bike className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">₱320.00</div>

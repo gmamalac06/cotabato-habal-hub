@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, MotorcycleIcon } from "lucide-react";
+import { Menu, X, Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -40,7 +40,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
-              <MotorcycleIcon className="h-5 w-5 text-white" />
+              <Bike className="h-5 w-5 text-white" />
             </div>
             <span className="font-heading text-xl font-bold">Habal Hub</span>
           </Link>
