@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { GoogleMap as GoogleMapComponent, Marker } from "@react-google-maps/api";
 import { useGoogleMapApi } from "@/contexts/GoogleMapApiProvider";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,6 @@ const defaultCenter = {
   lat: 7.2170,
   lng: 124.2482
 };
-
-// Define libraries type properly to fix TypeScript error
-type Library = "places" | "drawing" | "geometry" | "visualization";
 
 interface GoogleMapProps {
   center?: { lat: number; lng: number };
@@ -50,13 +47,6 @@ export default function GoogleMap({
     mapRef.current = map;
     setMapLoaded(true);
   }, []);
-
-  // Show API key dialog when not configured
-  useEffect(() => {
-    if (!isKeyConfigured) {
-      setShowApiKeyDialog(true);
-    }
-  }, [isKeyConfigured]);
 
   // Handle API key submission
   const handleSaveApiKey = () => {

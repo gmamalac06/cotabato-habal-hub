@@ -31,13 +31,8 @@ export function GoogleMapApiProvider({ children }: GoogleMapApiProviderProps) {
   useEffect(() => {
     if (apiKey) {
       localStorage.setItem("google_maps_api_key", apiKey);
-      
-      // When API key changes, we need to reload the page to reinitialize the Google Maps loader
-      if (window.google?.maps && isLoaded) {
-        window.location.reload();
-      }
     }
-  }, [apiKey, isLoaded]);
+  }, [apiKey]);
 
   // Initialize loader globally if API key is present
   useEffect(() => {
@@ -59,14 +54,22 @@ export function GoogleMapApiProvider({ children }: GoogleMapApiProviderProps) {
       };
       
       script.onerror = (error) => {
-        setLoadError(error as Error);
+        // Properly handle the error type conversion
+        const errorObj = error instanceof Error 
+          ? error 
+          : new Error(typeof error === 'string' ? error : 'Failed to load Google Maps API');
+        
+        setLoadError(errorObj);
         setIsLoaded(false);
       };
       
       document.head.appendChild(script);
       
       return () => {
-        document.head.removeChild(script);
+        // Only remove if it exists
+        if (document.head.contains(script)) {
+          document.head.removeChild(script);
+        }
       };
     } else {
       setIsLoaded(true);
