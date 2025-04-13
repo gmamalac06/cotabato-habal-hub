@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { User, UserRole } from "@/types";
 
 // Mock user data
@@ -33,7 +32,7 @@ const mockUsers = [
 
 interface AuthContextType {
   user: User | null;
-  isLoading: boolean; // Add isLoading property
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (
     email: string,
@@ -44,19 +43,20 @@ interface AuthContextType {
   ) => Promise<void>;
   logout: () => void;
   updateUserProfile: (updatedUser: User) => void;
+  navigate: (path: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ 
+  children: React.ReactNode; 
+  navigate: (path: string) => void;
+}> = ({ children, navigate }) => {
   const [user, setUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem("habal_user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Add isLoading state
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (user) {
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user]);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true); // Set loading state
+    setIsLoading(true);
     try {
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Invalid credentials");
       }
     } finally {
-      setIsLoading(false); // Clear loading state
+      setIsLoading(false);
     }
   };
 
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     phone: string,
     role: UserRole
   ) => {
-    setIsLoading(true); // Set loading state
+    setIsLoading(true);
     try {
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(newUser);
       navigate(`/${role}`);
     } finally {
-      setIsLoading(false); // Clear loading state
+      setIsLoading(false);
     }
   };
 
@@ -135,7 +135,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserProfile }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      login, 
+      register, 
+      logout, 
+      updateUserProfile,
+      navigate
+    }}>
       {children}
     </AuthContext.Provider>
   );
