@@ -29,11 +29,13 @@ interface AuthFormProps {
   isLoading: boolean;
 }
 
+// Define login schema
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
+// Define register schema
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -44,17 +46,24 @@ const registerSchema = z.object({
   }),
 });
 
+// Create union type based on form type
+type LoginFormValues = z.infer<typeof loginSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
+type FormValues = LoginFormValues | RegisterFormValues;
+
 export default function AuthForm({ type, onSubmit, isLoading }: AuthFormProps) {
+  // Use the appropriate schema based on form type
   const formSchema = type === "login" ? loginSchema : registerSchema;
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Create form with proper type
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: type === "login" 
-      ? { email: "", password: "" }
-      : { name: "", email: "", phone: "", password: "", role: "rider" },
+      ? { email: "", password: "" } as LoginFormValues
+      : { name: "", email: "", phone: "", password: "", role: "rider" } as RegisterFormValues,
   });
 
-  const handleSubmit = (data: z.infer<typeof formSchema>) => {
+  const handleSubmit = (data: FormValues) => {
     onSubmit(data);
   };
 

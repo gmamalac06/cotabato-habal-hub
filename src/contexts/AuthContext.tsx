@@ -33,6 +33,7 @@ const mockUsers = [
 
 interface AuthContextType {
   user: User | null;
+  isLoading: boolean; // Add isLoading property
   login: (email: string, password: string) => Promise<void>;
   register: (
     email: string,
@@ -54,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedUser = localStorage.getItem("habal_user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add isLoading state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,17 +67,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user]);
 
   const login = async (email: string, password: string) => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setIsLoading(true); // Set loading state
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Find user by email (in a real app, we'd verify password too)
-    const foundUser = mockUsers.find((u) => u.email === email);
+      // Find user by email (in a real app, we'd verify password too)
+      const foundUser = mockUsers.find((u) => u.email === email);
 
-    if (foundUser) {
-      setUser(foundUser);
-      navigate(`/${foundUser.role}`);
-    } else {
-      throw new Error("Invalid credentials");
+      if (foundUser) {
+        setUser(foundUser);
+        navigate(`/${foundUser.role}`);
+      } else {
+        throw new Error("Invalid credentials");
+      }
+    } finally {
+      setIsLoading(false); // Clear loading state
     }
   };
 
@@ -86,25 +93,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     phone: string,
     role: UserRole
   ) => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setIsLoading(true); // Set loading state
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Create a new user (in a real app, we'd check for existing users, validate data, etc.)
-    const newUser = {
-      id: String(mockUsers.length + 1),
-      name,
-      email,
-      phone,
-      role,
-      avatar: null,
-    };
+      // Create a new user (in a real app, we'd check for existing users, validate data, etc.)
+      const newUser = {
+        id: String(mockUsers.length + 1),
+        name,
+        email,
+        phone,
+        role,
+        avatar: null,
+      };
 
-    // Add to our "database"
-    mockUsers.push(newUser);
+      // Add to our "database"
+      mockUsers.push(newUser);
 
-    // Log in the new user
-    setUser(newUser);
-    navigate(`/${role}`);
+      // Log in the new user
+      setUser(newUser);
+      navigate(`/${role}`);
+    } finally {
+      setIsLoading(false); // Clear loading state
+    }
   };
 
   const logout = () => {
@@ -123,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateUserProfile }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
