@@ -1,34 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
-
-// Mock user data
-const mockUsers = [
-  {
-    id: "1",
-    name: "John Rider",
-    email: "rider@example.com",
-    phone: "09123456789",
-    role: "rider" as UserRole,
-    avatar: null,
-  },
-  {
-    id: "2",
-    name: "Dave Driver",
-    email: "driver@example.com",
-    phone: "09987654321",
-    role: "driver" as UserRole,
-    avatar: null,
-  },
-  {
-    id: "3",
-    name: "Admin User",
-    email: "admin@example.com",
-    phone: "09111222333",
-    role: "admin" as UserRole,
-    avatar: null,
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -52,35 +26,104 @@ export const AuthProvider: React.FC<{
   children: React.ReactNode; 
   navigate: (path: string) => void;
 }> = ({ children, navigate }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("habal_user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Initialize auth state
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("habal_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("habal_user");
-    }
-  }, [user]);
+    const initializeAuth = async () => {
+      setIsLoading(true);
+      
+      // Check for existing session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Get user profile from the profiles table
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile) {
+          setUser({
+            id: session.user.id,
+            name: profile.full_name || session.user.email?.split('@')[0] || '',
+            email: session.user.email || '',
+            phone: profile.phone_number || '',
+            role: profile.role as UserRole,
+            avatar: null // We'll implement avatar storage later
+          });
+        }
+      }
+      
+      setIsLoading(false);
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // Get user profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profile) {
+            setUser({
+              id: session.user.id,
+              name: profile.full_name || session.user.email?.split('@')[0] || '',
+              email: session.user.email || '',
+              phone: profile.phone_number || '',
+              role: profile.role as UserRole,
+              avatar: null
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // Find user by email (in a real app, we'd verify password too)
-      const foundUser = mockUsers.find((u) => u.email === email);
-
-      if (foundUser) {
-        setUser(foundUser);
-        navigate(`/${foundUser.role}`);
-      } else {
-        throw new Error("Invalid credentials");
+      if (error) {
+        throw new Error(error.message);
       }
+
+      if (data.user) {
+        // Get user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profile) {
+          navigate(`/${profile.role}`);
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -95,42 +138,71 @@ export const AuthProvider: React.FC<{
   ) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Create a new user (in a real app, we'd check for existing users, validate data, etc.)
-      const newUser = {
-        id: String(mockUsers.length + 1),
-        name,
+      const { data, error } = await supabase.auth.signUp({
         email,
-        phone,
-        role,
-        avatar: null,
-      };
+        password,
+        options: {
+          data: {
+            full_name: name,
+            phone_number: phone,
+            role: role,
+          },
+        },
+      });
 
-      // Add to our "database"
-      mockUsers.push(newUser);
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      // Log in the new user
-      setUser(newUser);
-      navigate(`/${role}`);
+      if (data.user) {
+        toast({
+          title: "Registration successful",
+          description: "You can now log in with your new account.",
+        });
+        navigate('/login');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     navigate("/");
   };
 
-  const updateUserProfile = (updatedUser: User) => {
-    setUser(updatedUser);
-    
-    // In a real app, you would also update this on the server
-    const userIndex = mockUsers.findIndex(u => u.id === updatedUser.id);
-    if (userIndex !== -1) {
-      mockUsers[userIndex] = updatedUser;
+  const updateUserProfile = async (updatedUser: User) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: updatedUser.name,
+          phone_number: updatedUser.phone,
+        })
+        .eq('id', updatedUser.id);
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setUser(updatedUser);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

@@ -25,10 +25,12 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { MapPin, Navigation } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import LocationPicker from "@/components/maps/LocationPicker";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function BookRideDialog() {
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
@@ -38,23 +40,93 @@ export default function BookRideDialog() {
   const [pickupLocation, setPickupLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [dropoffLocation, setDropoffLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("gcash");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { position: currentPosition, loading: loadingPosition, error: positionError } = useGeolocation();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
-  const handleBookRide = () => {
-    // In a real app, this would send data to the backend
-    toast({
-      title: "Ride Booked!",
-      description: "Your ride has been scheduled successfully.",
-    });
-    setIsBookingDialogOpen(false);
-    
-    // Reset form values
-    setPickup("");
-    setDropoff("");
-    setPickupLocation(null);
-    setDropoffLocation(null);
+  const handleBookRide = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to book a ride.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Step 1: Create/save pickup location
+      const { data: pickupLocationData, error: pickupLocationError } = await supabase
+        .from('locations')
+        .insert({
+          address: pickupLocation ? pickupLocation.address : pickup,
+          latitude: pickupLocation ? pickupLocation.lat : 0,
+          longitude: pickupLocation ? pickupLocation.lng : 0
+        })
+        .select()
+        .single();
+
+      if (pickupLocationError) throw new Error(pickupLocationError.message);
+
+      // Step 2: Create/save dropoff location
+      const { data: dropoffLocationData, error: dropoffLocationError } = await supabase
+        .from('locations')
+        .insert({
+          address: dropoffLocation ? dropoffLocation.address : dropoff,
+          latitude: dropoffLocation ? dropoffLocation.lat : 0,
+          longitude: dropoffLocation ? dropoffLocation.lng : 0
+        })
+        .select()
+        .single();
+
+      if (dropoffLocationError) throw new Error(dropoffLocationError.message);
+
+      // Step 3: Calculate fare (in a real app, this would use distance/time)
+      const fare = Math.floor(Math.random() * 200) + 50; // Random fare between 50-250 pesos
+
+      // Step 4: Create the ride
+      const { data: rideData, error: rideError } = await supabase
+        .from('rides')
+        .insert({
+          rider_id: user.id,
+          pickup_location_id: pickupLocationData.id,
+          dropoff_location_id: dropoffLocationData.id,
+          status: 'pending',
+          fare: fare,
+          payment_method: paymentMethod,
+          scheduled_time: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (rideError) throw new Error(rideError.message);
+
+      toast({
+        title: "Ride Booked!",
+        description: "Your ride has been scheduled successfully.",
+      });
+      
+      setIsBookingDialogOpen(false);
+      
+      // Reset form values
+      setPickup("");
+      setDropoff("");
+      setPickupLocation(null);
+      setDropoffLocation(null);
+      
+    } catch (error: any) {
+      toast({
+        title: "Booking failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePickupSelected = (location: { lat: number; lng: number; address: string }) => {
@@ -185,10 +257,10 @@ export default function BookRideDialog() {
           </Button>
           <Button 
             onClick={handleBookRide}
-            disabled={(currentTab === "manual" && (!pickup || !dropoff)) || 
+            disabled={isLoading || (currentTab === "manual" && (!pickup || !dropoff)) || 
                      (currentTab === "map" && (!pickupLocation || !dropoffLocation))}
           >
-            Book Now
+            {isLoading ? "Booking..." : "Book Now"}
           </Button>
         </DialogFooter>
       </DialogContent>

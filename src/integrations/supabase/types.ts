@@ -69,6 +69,33 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          id: string
+          is_default: boolean | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_default?: boolean | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_default?: boolean | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -156,6 +183,7 @@ export type Database = {
           dropoff_location_id: string
           fare: number
           id: string
+          payment_method: string | null
           pickup_location_id: string
           rider_id: string
           scheduled_time: string
@@ -169,6 +197,7 @@ export type Database = {
           dropoff_location_id: string
           fare: number
           id?: string
+          payment_method?: string | null
           pickup_location_id: string
           rider_id: string
           scheduled_time?: string
@@ -182,6 +211,7 @@ export type Database = {
           dropoff_location_id?: string
           fare?: number
           id?: string
+          payment_method?: string | null
           pickup_location_id?: string
           rider_id?: string
           scheduled_time?: string
@@ -218,6 +248,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_locations: {
+        Row: {
+          address: string
+          created_at: string | null
+          id: string
+          is_home: boolean | null
+          is_work: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          id?: string
+          is_home?: boolean | null
+          is_work?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          id?: string
+          is_home?: boolean | null
+          is_work?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
