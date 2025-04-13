@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
 import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -18,9 +19,13 @@ export const AuthGuard = ({ children, allowedRoles }: AuthGuardProps) => {
   }, [user, isLoading, location.pathname]);
 
   if (isLoading) {
-    // You could return a loading spinner here
     console.log("AuthGuard - Still loading...");
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading authentication...</span>
+      </div>
+    );
   }
 
   // If user is not logged in, redirect to login page
@@ -63,7 +68,12 @@ export const GuestGuard = ({ children }: { children: React.ReactNode }) => {
   
   if (isLoading) {
     console.log("GuestGuard - Still loading...");
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading authentication...</span>
+      </div>
+    );
   }
 
   // If user is logged in, redirect to their dashboard

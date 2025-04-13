@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
@@ -7,9 +7,20 @@ import { Bike } from "lucide-react";
 import { UserRole } from "@/types";
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Add debugging to check if component mounts
+  useEffect(() => {
+    console.log("Register component mounted");
+  }, []);
+
+  // Add debugging for auth loading state
+  useEffect(() => {
+    console.log("Register auth loading state:", authLoading);
+  }, [authLoading]);
 
   const handleRegister = async (data: { 
     name: string; 
@@ -19,12 +30,16 @@ export default function Register() {
     role: UserRole;
   }) => {
     try {
+      console.log("Registration attempt started", data.email);
       setIsLoading(true);
+      setError(null);
       await register(data.email, data.password, data.name, data.phone, data.role);
       
       // Navigation will happen automatically via the GuestGuard
-    } catch (error) {
+      console.log("Registration successful");
+    } catch (error: any) {
       console.error("Registration error:", error);
+      setError(error?.message || "Failed to register. Please try again.");
       setIsLoading(false);
     }
   };
@@ -40,11 +55,22 @@ export default function Register() {
           <p className="text-muted-foreground">Join Habal Hub today</p>
         </div>
         
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        
         <AuthForm 
           type="register" 
           onSubmit={handleRegister} 
-          isLoading={isLoading} 
+          isLoading={isLoading || authLoading} 
         />
+        
+        {/* Add debug information */}
+        <div className="mt-4 text-xs text-muted-foreground">
+          Auth state: {authLoading ? "Loading..." : "Ready"}
+        </div>
       </div>
     </div>
   );

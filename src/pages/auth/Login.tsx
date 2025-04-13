@@ -6,7 +6,7 @@ import AuthForm from "@/components/auth/AuthForm";
 import { Bike } from "lucide-react";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -15,6 +15,11 @@ export default function Login() {
   useEffect(() => {
     console.log("Login component mounted");
   }, []);
+
+  // Add debugging for auth loading state
+  useEffect(() => {
+    console.log("Auth loading state changed:", authLoading);
+  }, [authLoading]);
 
   const handleLogin = async (data: { email: string; password: string }) => {
     try {
@@ -52,8 +57,13 @@ export default function Login() {
         <AuthForm 
           type="login" 
           onSubmit={handleLogin} 
-          isLoading={isLoading} 
+          isLoading={isLoading || authLoading} 
         />
+        
+        {/* Add debug information */}
+        <div className="mt-4 text-xs text-muted-foreground">
+          Auth state: {authLoading ? "Loading..." : "Ready"}
+        </div>
       </div>
     </div>
   );
