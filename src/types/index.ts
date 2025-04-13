@@ -1,4 +1,3 @@
-
 export type UserRole = "rider" | "driver" | "admin";
 
 export interface User {
@@ -40,7 +39,6 @@ export interface RouteInfo {
   fare: number;
 }
 
-// Add missing types for Ride, RideLocation, Rider, Driver, Admin, Notification, DashboardStats
 export interface RideLocation {
   id: string;
   name: string;
@@ -126,4 +124,14 @@ export interface DashboardStats {
   cancelledRides: number;
   totalEarnings?: number;
   averageRating?: number;
+}
+
+export interface Profiles {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  full_name?: string;
+  phone_number?: string;
+  role?: string;
+  avatar_url?: string;
 }

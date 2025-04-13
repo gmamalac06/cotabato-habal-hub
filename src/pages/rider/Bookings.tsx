@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,34 +10,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useRides } from "@/hooks/useRides";
 import { supabase } from "@/integrations/supabase/client";
 import BookRideDialog from "@/components/rider/BookRideDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Ride } from "@/types";
 
 const ratingSchema = z.object({
   rating: z.number().min(1).max(5),
   review: z.string().optional(),
 });
 
-type RatingFormValues = z.infer<typeof ratingSchema>;
+type RatingFormValues = {
+  rating: number;
+  review?: string;
+};
 
 export default function RiderBookings() {
   const { user } = useAuth();
