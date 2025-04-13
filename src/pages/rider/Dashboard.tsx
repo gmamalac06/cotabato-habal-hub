@@ -5,9 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import RiderStatsCards from "@/components/rider/RiderStatsCards";
-import RecentBookingsTable from "@/components/rider/RecentBookingsTable";
+import RecentBookingsTable, { BookingTableItem } from "@/components/rider/RecentBookingsTable";
 import QuickActions from "@/components/rider/QuickActions";
-import { User, BookingTableItem } from "@/types";
+import { User } from "@/types";
 import { useStatistics } from "@/hooks/useStatistics";
 import { useRides } from "@/hooks/useRides";
 
