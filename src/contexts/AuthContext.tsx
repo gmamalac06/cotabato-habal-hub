@@ -1,136 +1,138 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, UserRole } from "@/types";
-import { findUserByEmail } from "@/lib/mock-data";
-import { useToast } from "@/components/ui/use-toast";
+
+// Mock user data
+const mockUsers = [
+  {
+    id: "1",
+    name: "John Rider",
+    email: "rider@example.com",
+    phone: "09123456789",
+    role: "rider" as UserRole,
+    avatar: null,
+  },
+  {
+    id: "2",
+    name: "Dave Driver",
+    email: "driver@example.com",
+    phone: "09987654321",
+    role: "driver" as UserRole,
+    avatar: null,
+  },
+  {
+    id: "3",
+    name: "Admin User",
+    email: "admin@example.com",
+    phone: "09111222333",
+    role: "admin" as UserRole,
+    avatar: null,
+  },
+];
 
 interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+    phone: string,
+    role: UserRole
+  ) => Promise<void>;
   logout: () => void;
-  register: (email: string, password: string, name: string, phone: string, role: UserRole) => Promise<void>;
+  updateUserProfile: (updatedUser: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { toast } = useToast();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem("habal_user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const navigate = useNavigate();
 
-  // Check if user is already logged in
   useEffect(() => {
-    const storedUser = localStorage.getItem("habalUser");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse stored user", error);
-      }
+    if (user) {
+      localStorage.setItem("habal_user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("habal_user");
     }
-    setIsLoading(false);
-  }, []);
+  }, [user]);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, you would validate credentials with a backend API
-      // For this mock version, we'll just check if the user exists
-      const user = findUserByEmail(email);
-      
-      if (!user) {
-        throw new Error("Invalid email or password");
-      }
-      
-      // Password check would happen on the server in a real app
-      // Here we're just simulating success if the user exists
-      
-      setUser(user);
-      localStorage.setItem("habalUser", JSON.stringify(user));
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.name}!`,
-        variant: "default",
-      });
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Find user by email (in a real app, we'd verify password too)
+    const foundUser = mockUsers.find((u) => u.email === email);
+
+    if (foundUser) {
+      setUser(foundUser);
+      navigate(`/${foundUser.role}`);
+    } else {
+      throw new Error("Invalid credentials");
     }
+  };
+
+  const register = async (
+    email: string,
+    password: string,
+    name: string,
+    phone: string,
+    role: UserRole
+  ) => {
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Create a new user (in a real app, we'd check for existing users, validate data, etc.)
+    const newUser = {
+      id: String(mockUsers.length + 1),
+      name,
+      email,
+      phone,
+      role,
+      avatar: null,
+    };
+
+    // Add to our "database"
+    mockUsers.push(newUser);
+
+    // Log in the new user
+    setUser(newUser);
+    navigate(`/${role}`);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("habalUser");
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
+    navigate("/");
   };
 
-  const register = async (email: string, password: string, name: string, phone: string, role: UserRole) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user already exists
-      const existingUser = findUserByEmail(email);
-      if (existingUser) {
-        throw new Error("User with this email already exists");
-      }
-      
-      // In a real app, you would send this data to your backend API
-      // and create a new user in your database
-      // For this mock version, we'll just simulate success
-      
-      const newUser: User = {
-        id: `new-${Date.now().toString(36)}`,
-        email,
-        name,
-        phone,
-        role,
-        createdAt: new Date(),
-      };
-      
-      setUser(newUser);
-      localStorage.setItem("habalUser", JSON.stringify(newUser));
-      toast({
-        title: "Registration successful",
-        description: `Welcome to Habal Hub, ${name}!`,
-      });
-    } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
+  const updateUserProfile = (updatedUser: User) => {
+    setUser(updatedUser);
+    
+    // In a real app, you would also update this on the server
+    const userIndex = mockUsers.findIndex(u => u.id === updatedUser.id);
+    if (userIndex !== -1) {
+      mockUsers[userIndex] = updatedUser;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}
+};

@@ -5,11 +5,16 @@ import RiderStatsCards from "@/components/rider/RiderStatsCards";
 import RecentBookingsTable from "@/components/rider/RecentBookingsTable";
 import QuickActions from "@/components/rider/QuickActions";
 import BookRideDialog from "@/components/rider/BookRideDialog";
+import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { dashboardStats } from "@/lib/mock-data";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RiderDashboard() {
   const isMobile = useIsMobile();
+  const { user, updateUserProfile } = useAuth();
+  const { toast } = useToast();
   
   // Mock recent bookings data
   const recentBookings = [
@@ -31,10 +36,28 @@ export default function RiderDashboard() {
     }
   ];
 
+  const handleProfilePictureUpload = (imageUrl: string) => {
+    if (user) {
+      updateUserProfile({ ...user, avatar: imageUrl });
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been updated successfully",
+      });
+    }
+  };
+
   return (
     <DashboardLayout>
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-6 items-center mb-8">
+        {!isMobile && user && (
+          <ProfilePictureUpload 
+            currentAvatar={user.avatar} 
+            name={user.name} 
+            onUpload={handleProfilePictureUpload} 
+          />
+        )}
+        
         <div>
           <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold`}>Dashboard</h1>
           <p className="text-muted-foreground">Welcome back to Habal Hub</p>

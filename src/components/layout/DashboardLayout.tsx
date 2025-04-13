@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+
+import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
@@ -14,12 +15,20 @@ import {
   LogOut, 
   MessageSquare, 
   BarChart3, 
-  Bell 
+  Bell,
+  Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -32,9 +41,10 @@ interface NavItem {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUserProfile } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   
   if (!user) {
     return null;
@@ -84,6 +94,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return location.pathname === path;
   };
 
+  const handleProfilePictureUpload = (imageUrl: string) => {
+    if (user) {
+      updateUserProfile({ ...user, avatar: imageUrl });
+      if (isMobile) {
+        setProfileDialogOpen(false);
+      }
+    }
+  };
+
   return (
     <div className="flex h-screen bg-secondary">
       {/* Sidebar */}
@@ -91,7 +110,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex flex-col h-full">
           <div className="p-4">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#1E6FD9] rounded-full flex items-center justify-center">
                 <Bike className="h-4 w-4 text-white" />
               </div>
               <span className="font-heading text-lg font-bold">Habal Hub</span>
@@ -102,13 +121,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           
           <div className="p-4">
             <div className="flex items-center space-x-3">
-              <Avatar>
-                {user.avatar ? (
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                ) : (
-                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                )}
-              </Avatar>
+              <button 
+                onClick={() => setProfileDialogOpen(true)}
+                className="relative cursor-pointer group"
+              >
+                <Avatar>
+                  {user.avatar ? (
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                  ) : (
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  )}
+                </Avatar>
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100">
+                  <Camera className="h-4 w-4 text-white" />
+                </div>
+              </button>
               <div>
                 <p className="font-medium text-sm">{user.name}</p>
                 <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
@@ -157,7 +184,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between">
             {isMobile && (
               <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-[#1E6FD9] rounded-full flex items-center justify-center">
                   <Bike className="h-4 w-4 text-white" />
                 </div>
                 <span className="font-heading text-lg font-bold">Habal Hub</span>
@@ -175,13 +202,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
               
               {isMobile && (
-                <Avatar className="h-8 w-8">
-                  {user.avatar ? (
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                  ) : (
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                  )}
-                </Avatar>
+                <button 
+                  onClick={() => setProfileDialogOpen(true)}
+                  className="relative cursor-pointer group"
+                >
+                  <Avatar className="h-8 w-8">
+                    {user.avatar ? (
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                    ) : (
+                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100">
+                    <Camera className="h-3 w-3 text-white" />
+                  </div>
+                </button>
               )}
             </div>
           </div>
@@ -215,6 +250,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Profile Picture Upload Dialog */}
+      <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Profile Picture</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center py-6">
+            <ProfilePictureUpload 
+              currentAvatar={user.avatar} 
+              name={user.name} 
+              onUpload={handleProfilePictureUpload}
+              size="lg"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
