@@ -101,7 +101,7 @@ export default function RiderDashboard() {
       />
       
       {/* Recent Bookings */}
-      <RecentBookingsTable bookings={recentBookings} />
+      <RecentBookingsTable bookings={recentBookings as any} />
       
       {/* Quick Actions */}
       <QuickActions />

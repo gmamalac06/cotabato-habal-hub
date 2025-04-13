@@ -217,7 +217,7 @@ export default function QuickActions() {
           
           <div className="mt-4 mb-6">
             <LocationPicker
-              type="location"
+              type="pickup"
               onSelectLocation={handleLocationSelected}
             />
           </div>

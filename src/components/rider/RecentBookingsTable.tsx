@@ -2,18 +2,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Later we can replace this with real data from the API
-interface Booking {
+// Custom type for the bookings displayed in the table
+export interface BookingTableItem {
   date: string;
   driver: string;
   from: string;
   to: string;
   fare: string;
-  status: "Completed" | "Cancelled" | "Pending";
+  status: string; // Changed from enum to string to match actual usage
 }
 
 interface RecentBookingsTableProps {
-  bookings: Booking[];
+  bookings: BookingTableItem[];
 }
 
 export default function RecentBookingsTable({ bookings }: RecentBookingsTableProps) {

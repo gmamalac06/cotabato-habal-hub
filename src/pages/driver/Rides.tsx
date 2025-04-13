@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +24,7 @@ export default function DriverRides() {
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
   
   // Filter rides into different categories
-  const pendingRides = allRides.filter(ride => ride.status === 'pending' && !ride.driverId);
+  const pendingRides = allRides.filter(ride => ride.status === 'searching' && !ride.driverId);
   const acceptedRides = allRides.filter(ride => 
     (ride.status === 'accepted' || ride.status === 'in_progress') && 
     ride.driverId === user?.id
