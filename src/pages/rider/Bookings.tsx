@@ -1,4 +1,8 @@
+
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +14,23 @@ import { useToast } from "@/hooks/use-toast";
 import { useRides } from "@/hooks/useRides";
 import { supabase } from "@/integrations/supabase/client";
 import BookRideDialog from "@/components/rider/BookRideDialog";
+import { Ride } from "@/types";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 
 const ratingSchema = z.object({
   rating: z.number().min(1).max(5),
