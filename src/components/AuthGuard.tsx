@@ -2,6 +2,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
+import { useEffect } from "react";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -12,13 +13,19 @@ export const AuthGuard = ({ children, allowedRoles }: AuthGuardProps) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
+  useEffect(() => {
+    console.log("AuthGuard - Auth state:", { user, isLoading, path: location.pathname });
+  }, [user, isLoading, location.pathname]);
+
   if (isLoading) {
     // You could return a loading spinner here
+    console.log("AuthGuard - Still loading...");
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   // If user is not logged in, redirect to login page
   if (!user) {
+    console.log("AuthGuard - No user, redirecting to /login");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -37,17 +44,25 @@ export const AuthGuard = ({ children, allowedRoles }: AuthGuardProps) => {
         redirectPath = "/admin";
         break;
     }
+    console.log(`AuthGuard - User role ${user.role} not allowed, redirecting to ${redirectPath}`);
     return <Navigate to={redirectPath} replace />;
   }
 
   // If user is authenticated and authorized, render the children
+  console.log("AuthGuard - User authenticated and authorized");
   return <>{children}</>;
 };
 
 export const GuestGuard = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+  
+  useEffect(() => {
+    console.log("GuestGuard - Auth state:", { user, isLoading, path: location.pathname });
+  }, [user, isLoading, location.pathname]);
   
   if (isLoading) {
+    console.log("GuestGuard - Still loading...");
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
@@ -65,9 +80,11 @@ export const GuestGuard = ({ children }: { children: React.ReactNode }) => {
         redirectPath = "/admin";
         break;
     }
+    console.log(`GuestGuard - User logged in with role ${user.role}, redirecting to ${redirectPath}`);
     return <Navigate to={redirectPath} replace />;
   }
 
   // If user is not authenticated, render the children
+  console.log("GuestGuard - No user, showing login/register page");
   return <>{children}</>;
 };

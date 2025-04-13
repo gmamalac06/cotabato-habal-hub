@@ -32,56 +32,97 @@ export const AuthProvider: React.FC<{
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
+      console.log("AuthContext - Initializing auth state");
       setIsLoading(true);
       
-      // Check for existing session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        // Get user profile from the profiles table
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        // Check for existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (profile) {
-          setUser({
-            id: session.user.id,
-            name: profile.full_name || session.user.email?.split('@')[0] || '',
-            email: session.user.email || '',
-            phone: profile.phone_number || '',
-            role: profile.role as UserRole,
-            avatar: null // We'll implement avatar storage later
-          });
+        if (sessionError) {
+          console.error("AuthContext - Session error:", sessionError);
+          throw sessionError;
         }
-      }
-      
-      setIsLoading(false);
-    };
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          // Get user profile
-          const { data: profile } = await supabase
+        
+        console.log("AuthContext - Session check:", session ? "Session exists" : "No session");
+        
+        if (session?.user) {
+          // Get user profile from the profiles table
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
           
+          if (profileError) {
+            console.error("AuthContext - Profile fetch error:", profileError);
+            // Continue without throwing, as user might not have a profile yet
+          }
+          
+          console.log("AuthContext - Profile fetch:", profile ? "Profile found" : "No profile");
+          
           if (profile) {
-            setUser({
+            const userData = {
               id: session.user.id,
               name: profile.full_name || session.user.email?.split('@')[0] || '',
               email: session.user.email || '',
               phone: profile.phone_number || '',
               role: profile.role as UserRole,
-              avatar: null
-            });
+              avatar: profile.avatar_url || null
+            };
+            
+            console.log("AuthContext - Setting user:", userData);
+            setUser(userData);
+          }
+        }
+      } catch (error) {
+        console.error("AuthContext - Initialization error:", error);
+      } finally {
+        setIsLoading(false);
+        console.log("AuthContext - Initialization complete");
+      }
+    };
+
+    // Set up auth state listener
+    console.log("AuthContext - Setting up auth state listener");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("AuthContext - Auth state changed:", event, session ? "Session exists" : "No session");
+        
+        if (event === 'SIGNED_IN' && session) {
+          try {
+            // Get user profile
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (profileError) {
+              console.error("AuthContext - Profile fetch error on auth change:", profileError);
+              // Continue without throwing, as user might not have a profile yet
+            }
+            
+            console.log("AuthContext - Profile fetch on auth change:", profile ? "Profile found" : "No profile");
+            
+            if (profile) {
+              const userData = {
+                id: session.user.id,
+                name: profile.full_name || session.user.email?.split('@')[0] || '',
+                email: session.user.email || '',
+                phone: profile.phone_number || '',
+                role: profile.role as UserRole,
+                avatar: profile.avatar_url || null
+              };
+              
+              console.log("AuthContext - Setting user on auth change:", userData);
+              setUser(userData);
+            }
+          } catch (error) {
+            console.error("AuthContext - Error during auth state change:", error);
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log("AuthContext - User signed out");
           setUser(null);
         }
       }
@@ -90,6 +131,7 @@ export const AuthProvider: React.FC<{
     initializeAuth();
 
     return () => {
+      console.log("AuthContext - Cleaning up auth state listener");
       subscription.unsubscribe();
     };
   }, []);
