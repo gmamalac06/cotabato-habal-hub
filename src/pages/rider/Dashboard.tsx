@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import RiderStatsCards from "@/components/rider/RiderStatsCards";
-import RecentBookingsTable from "@/components/rider/RecentBookingsTable";
+import RecentBookingsTable, { BookingTableItem } from "@/components/rider/RecentBookingsTable";
 import QuickActions from "@/components/rider/QuickActions";
 import BookRideDialog from "@/components/rider/BookRideDialog";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
@@ -24,7 +24,7 @@ export default function RiderDashboard() {
   });
   
   // Format rides data for recent bookings table
-  const recentBookings = rides.slice(0, 5).map(ride => ({
+  const recentBookings: BookingTableItem[] = rides.slice(0, 5).map(ride => ({
     date: ride.scheduledTime.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -101,7 +101,7 @@ export default function RiderDashboard() {
       />
       
       {/* Recent Bookings */}
-      <RecentBookingsTable bookings={recentBookings as any} />
+      <RecentBookingsTable bookings={recentBookings} />
       
       {/* Quick Actions */}
       <QuickActions />

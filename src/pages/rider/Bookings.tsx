@@ -188,7 +188,7 @@ export default function RiderBookings() {
                           <span className="font-medium">
                             {formatDate(ride.scheduledTime)}
                           </span>
-                          <Badge variant={ride.status === 'pending' ? 'outline' : 'default'}>
+                          <Badge variant={ride.status === 'searching' ? 'outline' : 'default'}>
                             {ride.status.replace('_', ' ').toUpperCase()}
                           </Badge>
                         </div>
