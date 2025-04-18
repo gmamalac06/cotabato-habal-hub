@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{
             
             if (profileError) {
               console.error("AuthContext - Profile fetch error on auth change:", profileError);
+              setUser(null);
               setIsLoading(false);
               return;
             }
@@ -63,14 +64,18 @@ export const AuthProvider: React.FC<{
               
               console.log("AuthContext - Setting user on auth change:", userData);
               setUser(userData);
+              setIsLoading(false);
+            } else {
+              setUser(null);
+              setIsLoading(false);
             }
-            setIsLoading(false);
           } catch (error) {
             console.error("AuthContext - Error during auth state change:", error);
+            setUser(null);
             setIsLoading(false);
           }
-        } else if (event === 'SIGNED_OUT') {
-          console.log("AuthContext - User signed out");
+        } else {
+          console.log("AuthContext - No session or signed out");
           setUser(null);
           setIsLoading(false);
         }
@@ -107,6 +112,7 @@ export const AuthProvider: React.FC<{
           
           if (profileError) {
             console.error("AuthContext - Profile fetch error:", profileError);
+            setUser(null);
             setIsLoading(false);
             return;
           }
@@ -125,10 +131,13 @@ export const AuthProvider: React.FC<{
             
             console.log("AuthContext - Setting user:", userData);
             setUser(userData);
+          } else {
+            setUser(null);
           }
         }
       } catch (error) {
         console.error("AuthContext - Initialization error:", error);
+        setUser(null);
       } finally {
         setIsLoading(false);
         console.log("AuthContext - Initialization complete, setting isLoading to false");
@@ -154,22 +163,19 @@ export const AuthProvider: React.FC<{
 
       if (error) {
         console.error("Login error from Supabase:", error);
-        throw new Error(error.message);
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        throw error;
       }
 
       console.log("Login successful with data:", data ? "Data exists" : "No data");
 
-      if (data.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        if (profile) {
-          navigate(`/${profile.role}`);
-        }
-      }
+      // Navigation will happen through the auth state change listener
+      // We don't need to manually navigate or set the user here
     } catch (error: any) {
       console.error("Login function caught error:", error);
       toast({
@@ -206,18 +212,27 @@ export const AuthProvider: React.FC<{
 
       if (error) {
         console.error("Register error from Supabase:", error);
-        throw new Error(error.message);
+        toast({
+          title: "Registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        throw error;
       }
 
       console.log("Registration successful with data:", data ? "Data exists" : "No data");
 
-      if (data.user) {
-        toast({
-          title: "Registration successful",
-          description: "You can now log in with your new account.",
-        });
+      toast({
+        title: "Registration successful",
+        description: "You can now log in with your new account.",
+      });
+      
+      // We'll keep the loading state active until the user is redirected to login
+      setTimeout(() => {
+        setIsLoading(false);
         navigate('/login');
-      }
+      }, 500);
     } catch (error: any) {
       console.error("Register function caught error:", error);
       toast({
@@ -225,9 +240,8 @@ export const AuthProvider: React.FC<{
         description: error.message,
         variant: "destructive",
       });
-      throw error;
-    } finally {
       setIsLoading(false);
+      throw error;
     }
   };
 
@@ -237,9 +251,14 @@ export const AuthProvider: React.FC<{
     try {
       await supabase.auth.signOut();
       setUser(null);
-      navigate("/");
+      navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
+      toast({
+        title: "Logout failed",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -259,7 +278,12 @@ export const AuthProvider: React.FC<{
       
       if (error) {
         console.error("UpdateUserProfile error:", error);
-        throw new Error(error.message);
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
       }
 
       setUser(updatedUser);

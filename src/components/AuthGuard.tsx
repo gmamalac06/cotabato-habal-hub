@@ -21,9 +21,9 @@ export const AuthGuard = ({ children, allowedRoles }: AuthGuardProps) => {
   if (isLoading) {
     console.log("AuthGuard - Still loading...");
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Loading authentication...</span>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-secondary">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+        <span className="text-muted-foreground">Loading authentication...</span>
       </div>
     );
   }
@@ -69,9 +69,9 @@ export const GuestGuard = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     console.log("GuestGuard - Still loading...");
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Loading authentication...</span>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-secondary">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+        <span className="text-muted-foreground">Loading authentication...</span>
       </div>
     );
   }

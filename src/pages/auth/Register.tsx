@@ -34,12 +34,11 @@ export default function Register() {
       setIsLoading(true);
       setError(null);
       await register(data.email, data.password, data.name, data.phone, data.role);
-      
-      // Navigation will happen automatically via the GuestGuard
-      console.log("Registration successful");
+      // Note: Navigation is handled in the register function
     } catch (error: any) {
       console.error("Registration error:", error);
       setError(error?.message || "Failed to register. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -67,7 +66,6 @@ export default function Register() {
           isLoading={isLoading || authLoading} 
         />
         
-        {/* Add debug information */}
         <div className="mt-4 text-xs text-muted-foreground">
           Auth state: {authLoading ? "Loading..." : "Ready"}
         </div>

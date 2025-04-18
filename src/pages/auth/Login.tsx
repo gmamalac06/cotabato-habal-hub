@@ -27,12 +27,11 @@ export default function Login() {
       setIsLoading(true);
       setError(null);
       await login(data.email, data.password);
-      
-      // Navigation will happen automatically via the GuestGuard
-      console.log("Login successful, navigation should happen via GuestGuard");
+      // Note: Navigation will happen automatically via the GuestGuard
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error?.message || "Failed to login. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -60,7 +59,6 @@ export default function Login() {
           isLoading={isLoading || authLoading} 
         />
         
-        {/* Add debug information */}
         <div className="mt-4 text-xs text-muted-foreground">
           Auth state: {authLoading ? "Loading..." : "Ready"}
         </div>
