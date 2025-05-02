@@ -1,7 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { User, UserRole } from "@/types";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { 
+  loginWithEmailAndPassword, 
+  registerNewUser, 
+  signOutUser, 
+  updateUserProfileData 
+} from "@/utils/authUtils";
 
 interface AuthContextType {
   user: User | null;
@@ -25,166 +30,14 @@ export const AuthProvider: React.FC<{
   children: React.ReactNode; 
   navigate: (path: string) => void;
 }> = ({ children, navigate }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    console.log("AuthContext - Setting up auth state listener");
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("AuthContext - Auth state changed:", event, session ? "Session exists" : "No session");
-        
-        if (session?.user) {
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profileError) {
-              console.error("AuthContext - Profile fetch error on auth change:", profileError);
-              setUser(null);
-              setIsLoading(false);
-              return;
-            }
-            
-            console.log("AuthContext - Profile fetch on auth change:", profile ? "Profile found" : "No profile");
-            
-            if (profile) {
-              const userData = {
-                id: session.user.id,
-                name: profile.full_name || session.user.email?.split('@')[0] || '',
-                email: session.user.email || '',
-                phone: profile.phone_number || '',
-                role: profile.role as UserRole,
-                avatar: profile.avatar_url || null
-              };
-              
-              console.log("AuthContext - Setting user on auth change:", userData);
-              setUser(userData);
-              setIsLoading(false);
-            } else {
-              setUser(null);
-              setIsLoading(false);
-            }
-          } catch (error) {
-            console.error("AuthContext - Error during auth state change:", error);
-            setUser(null);
-            setIsLoading(false);
-          }
-        } else {
-          console.log("AuthContext - No session or signed out");
-          setUser(null);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    const initializeAuth = async () => {
-      console.log("AuthContext - Initializing auth state");
-      setIsLoading(true);
-      
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("AuthContext - Session error:", sessionError);
-          setIsLoading(false);
-          return;
-        }
-        
-        console.log("AuthContext - Session check:", session ? "Session exists" : "No session");
-        
-        if (!session) {
-          console.log("AuthContext - No session exists, setting isLoading to false");
-          setIsLoading(false);
-          return;
-        }
-        
-        if (session?.user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileError) {
-            console.error("AuthContext - Profile fetch error:", profileError);
-            setUser(null);
-            setIsLoading(false);
-            return;
-          }
-          
-          console.log("AuthContext - Profile fetch:", profile ? "Profile found" : "No profile");
-          
-          if (profile) {
-            const userData = {
-              id: session.user.id,
-              name: profile.full_name || session.user.email?.split('@')[0] || '',
-              email: session.user.email || '',
-              phone: profile.phone_number || '',
-              role: profile.role as UserRole,
-              avatar: profile.avatar_url || null
-            };
-            
-            console.log("AuthContext - Setting user:", userData);
-            setUser(userData);
-          } else {
-            setUser(null);
-          }
-        }
-      } catch (error) {
-        console.error("AuthContext - Initialization error:", error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-        console.log("AuthContext - Initialization complete, setting isLoading to false");
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      console.log("AuthContext - Cleaning up auth state listener");
-      subscription.unsubscribe();
-    };
-  }, []);
-
+  const { user, isLoading } = useSupabaseAuth();
+  const [loadingAuth, setLoadingAuth] = useState(false);
+  
   const login = async (email: string, password: string) => {
-    console.log("Login function called with email:", email);
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error("Login error from Supabase:", error);
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return { error };
-      }
-
-      console.log("Login successful with data:", data ? "Data exists" : "No data");
-      return { data };
-      // Navigation will happen through the auth state change listener
-    } catch (error: any) {
-      console.error("Login function caught error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return { error };
-    }
+    setLoadingAuth(true);
+    const result = await loginWithEmailAndPassword(email, password);
+    setLoadingAuth(false);
+    return result;
   };
 
   const register = async (
@@ -194,121 +47,40 @@ export const AuthProvider: React.FC<{
     phone: string,
     role: UserRole
   ) => {
-    console.log("Register function called with email:", email);
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            phone_number: phone,
-            role: role,
-          },
-          emailRedirectTo: window.location.origin + '/login',
-        },
-      });
-
-      if (error) {
-        console.error("Register error from Supabase:", error);
-        toast({
-          title: "Registration failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return { error };
-      }
-
-      console.log("Registration successful with data:", data ? "Data exists" : "No data");
-
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to verify your account before logging in.",
-      });
-      
-      // We'll keep the loading state active until the user is redirected to login
-      setTimeout(() => {
-        setIsLoading(false);
-        navigate('/login');
-      }, 500);
-      
-      return { data };
-    } catch (error: any) {
-      console.error("Register function caught error:", error);
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return { error };
-    }
+    setLoadingAuth(true);
+    const result = await registerNewUser(email, password, name, phone, role);
+    
+    // We'll keep the loading state active until the user is redirected to login
+    setTimeout(() => {
+      setLoadingAuth(false);
+      navigate('/login');
+    }, 500);
+    
+    return result;
   };
 
   const logout = async () => {
-    console.log("Logout function called");
-    setIsLoading(true);
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Logout failed",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    setLoadingAuth(true);
+    await signOutUser();
+    setLoadingAuth(false);
+    navigate("/login");
   };
 
   const updateUserProfile = async (updatedUser: User) => {
-    console.log("UpdateUserProfile function called");
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: updatedUser.name,
-          phone_number: updatedUser.phone,
-        })
-        .eq('id', updatedUser.id);
-      
-      if (error) {
-        console.error("UpdateUserProfile error:", error);
-        toast({
-          title: "Update failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-
-      setUser(updatedUser);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error: any) {
-      console.error("UpdateUserProfile caught error:", error);
-      toast({
-        title: "Update failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    setLoadingAuth(true);
+    const result = await updateUserProfileData(updatedUser);
+    if (result.success) {
+      // Set the new user data in state
+      // Note: This might be redundant since auth state change should trigger anyway
+      // but it provides immediate feedback to the user
     }
+    setLoadingAuth(false);
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      isLoading, 
+      isLoading: isLoading || loadingAuth, 
       login, 
       register, 
       logout, 
