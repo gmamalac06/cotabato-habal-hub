@@ -6,14 +6,14 @@ import { toast } from "@/hooks/use-toast";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ data?: any; error?: any }>;
   register: (
     email: string,
     password: string,
     name: string,
     phone: string,
     role: UserRole
-  ) => Promise<void>;
+  ) => Promise<{ data?: any; error?: any }>;
   logout: () => void;
   updateUserProfile: (updatedUser: User) => void;
   navigate: (path: string) => void;
@@ -169,13 +169,12 @@ export const AuthProvider: React.FC<{
           variant: "destructive",
         });
         setIsLoading(false);
-        throw error;
+        return { error };
       }
 
       console.log("Login successful with data:", data ? "Data exists" : "No data");
-
+      return { data };
       // Navigation will happen through the auth state change listener
-      // We don't need to manually navigate or set the user here
     } catch (error: any) {
       console.error("Login function caught error:", error);
       toast({
@@ -184,7 +183,7 @@ export const AuthProvider: React.FC<{
         variant: "destructive",
       });
       setIsLoading(false);
-      throw error;
+      return { error };
     }
   };
 
@@ -207,6 +206,7 @@ export const AuthProvider: React.FC<{
             phone_number: phone,
             role: role,
           },
+          emailRedirectTo: window.location.origin + '/login',
         },
       });
 
@@ -218,14 +218,14 @@ export const AuthProvider: React.FC<{
           variant: "destructive",
         });
         setIsLoading(false);
-        throw error;
+        return { error };
       }
 
       console.log("Registration successful with data:", data ? "Data exists" : "No data");
 
       toast({
         title: "Registration successful",
-        description: "You can now log in with your new account.",
+        description: "Please check your email to verify your account before logging in.",
       });
       
       // We'll keep the loading state active until the user is redirected to login
@@ -233,6 +233,8 @@ export const AuthProvider: React.FC<{
         setIsLoading(false);
         navigate('/login');
       }, 500);
+      
+      return { data };
     } catch (error: any) {
       console.error("Register function caught error:", error);
       toast({
@@ -241,7 +243,7 @@ export const AuthProvider: React.FC<{
         variant: "destructive",
       });
       setIsLoading(false);
-      throw error;
+      return { error };
     }
   };
 

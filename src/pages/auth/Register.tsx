@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
 import { Bike } from "lucide-react";
 import { UserRole } from "@/types";
+import { toast } from "@/hooks/use-toast";
 
 export default function Register() {
   const { register, isLoading: authLoading } = useAuth();
@@ -33,11 +34,31 @@ export default function Register() {
       console.log("Registration attempt started", data.email);
       setIsLoading(true);
       setError(null);
-      await register(data.email, data.password, data.name, data.phone, data.role);
-      // Note: Navigation is handled in the register function
+      const result = await register(data.email, data.password, data.name, data.phone, data.role);
+      
+      if (result?.error) {
+        console.error("Registration error from result:", result.error);
+        setError(result.error.message || "Failed to register. Please try again.");
+        toast({
+          title: "Registration failed",
+          description: result.error.message || "Failed to register. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email for confirmation link before logging in.",
+        });
+        // Navigation is handled in the register function
+      }
     } catch (error: any) {
       console.error("Registration error:", error);
       setError(error?.message || "Failed to register. Please try again.");
+      toast({
+        title: "Registration failed",
+        description: error?.message || "Failed to register. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

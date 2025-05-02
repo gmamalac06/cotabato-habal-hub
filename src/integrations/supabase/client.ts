@@ -14,6 +14,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    storageKey: 'habal-hub-auth',
+    storage: localStorage
   },
   db: {
     schema: 'public',

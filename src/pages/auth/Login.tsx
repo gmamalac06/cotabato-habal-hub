@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
 import { Bike } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function Login() {
   const { login, isLoading: authLoading } = useAuth();
@@ -26,11 +27,35 @@ export default function Login() {
       console.log("Login attempt started", data.email);
       setIsLoading(true);
       setError(null);
-      await login(data.email, data.password);
+      const result = await login(data.email, data.password);
+      
+      if (result?.error) {
+        console.error("Login error from result:", result.error);
+        let errorMessage = result.error.message || "Failed to login. Please try again.";
+        
+        if (result.error.message === "Email not confirmed") {
+          errorMessage = "Please check your email and confirm your account before logging in.";
+        } else if (result.error.message === "Invalid login credentials") {
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        }
+        
+        setError(errorMessage);
+        toast({
+          title: "Login failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
       // Note: Navigation will happen automatically via the GuestGuard
     } catch (error: any) {
       console.error("Login error:", error);
-      setError(error?.message || "Failed to login. Please try again.");
+      const errorMessage = error?.message || "Failed to login. Please try again.";
+      setError(errorMessage);
+      toast({
+        title: "Login failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
