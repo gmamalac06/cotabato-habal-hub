@@ -1,6 +1,6 @@
 
 import { ReactNode, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
 import { 
@@ -16,13 +16,15 @@ import {
   MessageSquare, 
   BarChart3, 
   Bell,
-  Camera
+  Camera,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BackButton } from "@/components/ui/back-button";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +45,7 @@ interface NavItem {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout, updateUserProfile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   
@@ -108,7 +111,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside className={`${isMobile ? 'hidden' : 'block'} w-64 bg-card border-r border-border`}>
         <div className="flex flex-col h-full">
-          <div className="p-4">
+          <div className="p-4 flex items-center">
+            <BackButton to="/" className="mr-2" />
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-[#1E6FD9] rounded-full flex items-center justify-center">
                 <Bike className="h-4 w-4 text-white" />
@@ -183,12 +187,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <header className="bg-card border-b border-border py-4 px-6">
           <div className="flex items-center justify-between">
             {isMobile && (
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[#1E6FD9] rounded-full flex items-center justify-center">
-                  <Bike className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-heading text-lg font-bold">Habal Hub</span>
-              </Link>
+              <div className="flex items-center space-x-3">
+                <BackButton />
+                <Link to="/" className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-[#1E6FD9] rounded-full flex items-center justify-center">
+                    <Bike className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-heading text-lg font-bold">Habal Hub</span>
+                </Link>
+              </div>
             )}
             
             <div className="flex items-center space-x-3 ml-auto">

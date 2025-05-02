@@ -6,6 +6,7 @@ import AuthForm from "@/components/auth/AuthForm";
 import { Bike } from "lucide-react";
 import { UserRole } from "@/types";
 import { toast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/ui/back-button";
 
 export default function Register() {
   const { register, isLoading: authLoading } = useAuth();
@@ -66,7 +67,11 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-secondary">
-      <div className="auth-card animate-fade-in">
+      <div className="auth-card animate-fade-in relative w-full max-w-md">
+        <div className="absolute top-4 left-4">
+          <BackButton to="/login" />
+        </div>
+        
         <div className="text-center mb-6">
           <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
             <Bike className="text-white h-6 w-6" />
