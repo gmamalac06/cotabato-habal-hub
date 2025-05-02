@@ -9,7 +9,230 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      locations: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone_number: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone_number?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone_number?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          ride_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          ride_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          completed_time: string | null
+          created_at: string
+          distance: number | null
+          driver_id: string | null
+          dropoff_location_id: string
+          fare: number
+          id: string
+          payment_method: string
+          payment_status: string | null
+          pickup_location_id: string
+          pickup_time: string | null
+          rating: number | null
+          review: string | null
+          rider_id: string
+          scheduled_time: string
+          status: string
+        }
+        Insert: {
+          completed_time?: string | null
+          created_at?: string
+          distance?: number | null
+          driver_id?: string | null
+          dropoff_location_id: string
+          fare: number
+          id?: string
+          payment_method: string
+          payment_status?: string | null
+          pickup_location_id: string
+          pickup_time?: string | null
+          rating?: number | null
+          review?: string | null
+          rider_id: string
+          scheduled_time: string
+          status: string
+        }
+        Update: {
+          completed_time?: string | null
+          created_at?: string
+          distance?: number | null
+          driver_id?: string | null
+          dropoff_location_id?: string
+          fare?: number
+          id?: string
+          payment_method?: string
+          payment_status?: string | null
+          pickup_location_id?: string
+          pickup_time?: string | null
+          rating?: number | null
+          review?: string | null
+          rider_id?: string
+          scheduled_time?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_dropoff_location_id_fkey"
+            columns: ["dropoff_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_pickup_location_id_fkey"
+            columns: ["pickup_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_locations: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          is_home: boolean | null
+          is_work: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          is_home?: boolean | null
+          is_work?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          is_home?: boolean | null
+          is_work?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

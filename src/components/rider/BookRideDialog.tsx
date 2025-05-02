@@ -67,10 +67,12 @@ export default function BookRideDialog() {
           latitude: pickupLocation ? pickupLocation.lat : 0,
           longitude: pickupLocation ? pickupLocation.lng : 0
         })
-        .select()
-        .single();
+        .select();
 
       if (pickupLocationError) throw new Error(pickupLocationError.message);
+      if (!pickupLocationData || pickupLocationData.length === 0) {
+        throw new Error("Failed to create pickup location");
+      }
 
       // Step 2: Create/save dropoff location
       const { data: dropoffLocationData, error: dropoffLocationError } = await supabase
@@ -80,10 +82,12 @@ export default function BookRideDialog() {
           latitude: dropoffLocation ? dropoffLocation.lat : 0,
           longitude: dropoffLocation ? dropoffLocation.lng : 0
         })
-        .select()
-        .single();
+        .select();
 
       if (dropoffLocationError) throw new Error(dropoffLocationError.message);
+      if (!dropoffLocationData || dropoffLocationData.length === 0) {
+        throw new Error("Failed to create dropoff location");
+      }
 
       // Step 3: Calculate fare (in a real app, this would use distance/time)
       const fare = Math.floor(Math.random() * 200) + 50; // Random fare between 50-250 pesos
@@ -93,15 +97,14 @@ export default function BookRideDialog() {
         .from('rides')
         .insert({
           rider_id: user.id,
-          pickup_location_id: pickupLocationData.id,
-          dropoff_location_id: dropoffLocationData.id,
+          pickup_location_id: pickupLocationData[0].id,
+          dropoff_location_id: dropoffLocationData[0].id,
           status: 'pending',
           fare: fare,
           payment_method: paymentMethod,
           scheduled_time: new Date().toISOString()
         })
-        .select()
-        .single();
+        .select();
 
       if (rideError) throw new Error(rideError.message);
 
